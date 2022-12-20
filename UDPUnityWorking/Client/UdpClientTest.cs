@@ -10,6 +10,7 @@ using System.Threading;
 
 public class UdpClientTest : MonoBehaviour
 {
+   
     private static UdpClientTest _instance;
     public static UdpClientTest instance { get { return _instance; } }
 
@@ -19,6 +20,14 @@ public class UdpClientTest : MonoBehaviour
     IPEndPoint serverEndpoint;
     UdpClient client;
     public NetworkLogicHandler networkLogicHandler;
+
+    [System.Serializable]
+    public class InitialJoin
+    {
+        public string ID;
+        public string IP;
+    }
+    public InitialJoin initialJoin;
 
 
     private void Awake()
@@ -31,6 +40,9 @@ public class UdpClientTest : MonoBehaviour
         {
             _instance = this;
         }
+        initialJoin.ID = "init";
+        initialJoin.IP = GetLocalIPAddress();
+
     }
     void Start()
     {
@@ -44,7 +56,7 @@ public class UdpClientTest : MonoBehaviour
         client.Connect(new IPEndPoint(IPAddress.Parse("192.168.4.20"), 12345));
 
         // Send a request to the server
-         request = "Hi";
+         request = "INIT"+ JsonUtility.ToJson(initialJoin);
 
         byte[] requestBytes = Encoding.ASCII.GetBytes(request);
         client.Send(requestBytes, requestBytes.Length);
@@ -59,16 +71,18 @@ public class UdpClientTest : MonoBehaviour
                 byte[] message = client.Receive(ref serverEndpoint);
                 response = Encoding.ASCII.GetString(message);
 
+                NetworkLogicHandler.instance.ProcessingData(response);
+
                 Debug.Log("Received request from " + serverEndpoint + ": " + response);
                 networkLogicHandler.EPAddress = serverEndpoint;
             }
         });
-        // Debugtext.text = "Received request from " + clientEndpoint + ": " + request;
+        // Debugtext.text = "Received request from " + clientEndpoint + ": " + request; 
         listenThread.Start();
     }
     public void sendMsg(string responce, string Reqest, string ExpectedRequest)
     {
-        Debug.Log(serverEndpoint.Address.ToString() + " EPPPPPPP");
+      
        
         if (Reqest == ExpectedRequest)
         {
@@ -76,9 +90,18 @@ public class UdpClientTest : MonoBehaviour
             byte[] responseBytes = Encoding.ASCII.GetBytes(response);
             client.Send(responseBytes, responseBytes.Length);
         }
-        // Send a response back to the client
+        
 
     }
+      public void sendToServer(string responce)
+      {
+            response = responce;
+            byte[] responseBytes = Encoding.ASCII.GetBytes(response);
+            client.Send(responseBytes, responseBytes.Length);
+
+      }
+
+
 
     public string GetResponce()
     {
