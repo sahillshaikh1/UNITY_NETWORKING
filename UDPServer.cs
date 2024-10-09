@@ -169,7 +169,7 @@ public class UDPServer1 : MonoBehaviour
             return receivedMessage; // Return the original message if "ID" is not found
         }
     }
-    public  string GetNameFromPacket(string packet)
+    public  string GetNameFromPacket(string packet) //Get Name from packet
     {
         // Find the index of "ID" in the packet
         int idIndex = packet.IndexOf("ID");
